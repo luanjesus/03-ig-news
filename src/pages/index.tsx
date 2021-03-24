@@ -1,4 +1,4 @@
-import { GetServerSideProps } from 'next';
+import { GetStaticProps } from 'next';
 import Head from 'next/head';
 
 import { SubscribeButton } from '../components/SubscribeButton';
@@ -37,7 +37,10 @@ export default function Home( { product }: HomeProps ) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
+// SSR use export const getServerSideProps: GetServerSideProps
+
+// SSG use 
+export const getStaticProps: GetStaticProps = async () => {
   const price = await stripe.prices.retrieve('price_1IYLOeKk7mEJgWhgMV07qSVq',
   /* { expand: ['product'] } -> essa linha serve para pegar mais dados referentes ao produto como o nome*/ 
   ) 
@@ -50,9 +53,12 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }).format(price.unit_amount / 100 ), //convertendo o preço que vem centavos para o valor real
   }
 
+  //quando utilizarmos o SSG incluimos a props revalidate com o tempo para a página estatica mudar
+  const revalidadeTime = 60 * 60 * 24 // 24 hours
   return { 
     props: {
       product,
-    }
+    },
+    revalidate: revalidadeTime,
   }
 }
