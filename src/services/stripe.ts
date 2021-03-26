@@ -1,3 +1,5 @@
+//Métodos stripe utilizados no back-end
+
 import Stripe from 'stripe'
 import { version } from '../../package.json'
 

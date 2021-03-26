@@ -41,7 +41,7 @@ export default function Home( { product }: HomeProps ) {
 
 // SSG use 
 export const getStaticProps: GetStaticProps = async () => {
-  const price = await stripe.prices.retrieve('price_1IYLOeKk7mEJgWhgMV07qSVq',
+  const price = await stripe.prices.retrieve(process.env.STRIPE_SUBSCRIPE_PRICE_ID,
   /* { expand: ['product'] } -> essa linha serve para pegar mais dados referentes ao produto como o nome*/ 
   ) 
 
