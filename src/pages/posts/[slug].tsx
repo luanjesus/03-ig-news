@@ -4,10 +4,12 @@ import { getSession } from "next-auth/client"
 import { RichText } from "prismic-dom"
 import { getPrismicClient } from "../../services/prismic"
 
+import { CustomSession } from '../../types';
+
 import styles from './post.module.scss'
 
 interface PostProps {
-    post: { 
+    post: {
         slug: string;
         title: string;
         content: string;
@@ -28,9 +30,9 @@ export default function Post({ post }: PostProps) {
                 <article className={styles.post}>
                     <h1>{post.title}</h1>
                     <time>{post.updateAt}</time>
-                    <div 
+                    <div
                         className={styles.postContent}
-                        dangerouslySetInnerHTML={{ __html: post.content} } />
+                        dangerouslySetInnerHTML={{ __html: post.content }} />
                 </article>
             </main>
         </>
@@ -38,38 +40,52 @@ export default function Post({ post }: PostProps) {
 }
 
 
-
-export const getServerSideProps: GetServerSideProps = async ({ req, params })  => {
-    const session: any = await getSession({ req });
+export const getServerSideProps: GetServerSideProps = async ({ req, params }) => {
+    const session = await getSession({ req });
     const { slug } = params;
-     console.log(session);
-    if(!session?.activeSubscription){
+    //console.log(`ActiveSubscription: ${JSON.stringify((session as CustomSession)?.activeSubscription)}`);
+
+    //console.log(`Session: ${JSON.stringify((session as CustomSession))}`);
+    //console.log(`Params: ${JSON.stringify(params)}`);
+    
+    if (!session) {
         return {
-            redirect: { 
+            redirect: {
                 destination: '/',
                 permanent: false,
             }
-        }
-    }  
+        }        
+    } else {
+        if(!(session as CustomSession)?.activeSubscription){
+            return {
+                redirect: {
+                    destination: `posts/preview/${params.slug}`,
+                    permanent: false,
+                }
+            }
+        } else {
+            const prismic = getPrismicClient(req)
 
-    const prismic = getPrismicClient(req)
+            const response = await prismic.getByUID('post', String(slug), {})
+        
+            const post = {
+                slug,
+                title: RichText.asText(response.data.title),
+                content: RichText.asHtml(response.data.content),
+                updateAt: new Date(response.last_publication_date).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                })
+            }
+        
+            return {
+                props: {
+                    post,
+                }
+            }
+        }
+    } 
+
     
-    const response = await prismic.getByUID('post', String(slug), {})
-
-    const post = {
-        slug,
-        title: RichText.asText(response.data.title),
-        content: RichText.asHtml(response.data.content),        
-        updateAt: new Date(response.last_publication_date).toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-        })
-    }
-
-    return { 
-        props: { 
-            post,
-        }
-    }
 }

@@ -29,8 +29,6 @@
     p {
         margin-top: 0.5rem;
     }
-
-    
     
     a:hover {
         color: var(--cyan-500);
@@ -61,6 +59,7 @@
                 margin: 0.5rem 0;
             }
         }
+        
         
         &.previewContent {
             background: linear-gradient(var(--gray-300), transparent);
